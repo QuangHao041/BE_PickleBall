@@ -17,39 +17,40 @@ const authenticateUser = async (req, res, next) => {
       throw new Error('Không tìm thấy người dùng');
     }
 
-    req.user = user; // Lưu thông tin người dùng
-    next(); // Chuyển sang middleware hoặc route tiếp theo
+    req.user = user;
+    next();
   } catch (error) {
     console.error('Lỗi xác thực:', error);
     res.status(401).json({ error: 'Xác thực thất bại' });
   }
 };
 
-const authenticateAdmin = async (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  if (!token) {
-    return res.status(403).json({ error: 'Không có quyền truy cập' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
-
-    // console.log('User:', user); // Kiểm tra thông tin người dùng
-
-    // Kiểm tra xem người dùng có phải là admin hay không
-    if (!user || user.role !== 'admin') {
-      console.log('Người dùng không phải admin hoặc không tồn tại');
-      return res.status(403).json({ error: 'Không có quyền truy cập' });
+const checkRole = (roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
+    if (roles.includes(req.user.role)) {
+      next();
+    } else {
+      res.status(403).json({ error: 'Forbidden' });
+    }
+  };
+};
 
-    req.user = user; // Lưu thông tin người dùng vào req để sử dụng sau này
-    next();
+const authenticateAdmin = async (req, res, next) => {
+  try {
+    await authenticateUser(req, res, () => {
+      if (req.user && req.user.role === 'admin') {
+        next();
+      } else {
+        res.status(403).json({ error: 'Không có quyền truy cập' });
+      }
+    });
   } catch (error) {
-    console.error('Lỗi xác thực:', error);
+    console.error('Lỗi xác thực admin:', error);
     res.status(403).json({ error: 'Token không hợp lệ hoặc xác thực thất bại' });
   }
 };
 
-module.exports = { authenticateUser, authenticateAdmin };
+module.exports = { authenticateUser, authenticateAdmin, checkRole };

@@ -1,15 +1,28 @@
 const express = require('express');
-const {authenticateUser,authenticateAdmin} = require('../Middleware/authMiddleware');
-const { createPost,
-    editPost,
-    listAllPosts,
-    getPostDetails } = require('../Controller/postControllers');
+const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
+const {
+  createPost,
+  editPost,
+  listAllPosts,
+  getPostDetails,
+  applyForPost
+} = require('../Controller/postControllers');
+
 const router = express.Router();
 
-router.post('/create', authenticateUser, createPost);
-router.put('/:id', authenticateUser, editPost);
-router.get('/', listAllPosts);
-router.get('/:id', getPostDetails);
+// Create post - only accessible to users with 'court' role
+router.post('/create', authenticateUser, checkRole(['court']), createPost);
 
+// Edit post - only accessible to users with 'court' role
+router.put('/:id', authenticateUser, checkRole(['court']), editPost);
+
+// List all posts - accessible to all authenticated users
+router.get('/', authenticateUser, listAllPosts);
+
+// Get post details - accessible to all authenticated users
+router.get('/:id', authenticateUser, getPostDetails);
+
+// Apply for a post - only accessible to users with 'player' role
+router.post('/:post_id/apply', authenticateUser, checkRole(['player']), applyForPost);
 
 module.exports = router;
