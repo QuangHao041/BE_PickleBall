@@ -10,6 +10,7 @@ const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
 
 
+
 // khoi tao express webserver
 const app = express();
 
@@ -25,6 +26,7 @@ app.use(cors({
 app.use("/api/auth", authRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/admin", adminRoutes);
+
 
 
 // route toi web root
