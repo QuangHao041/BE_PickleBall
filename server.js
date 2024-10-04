@@ -1,7 +1,7 @@
-require('dotenv').config();
+require('dotenv').config(); // Tải các biến môi trường từ tệp .env
 const express = require("express");
 const morgan = require("morgan");
-const cors = require("cors")
+const cors = require("cors");
 const httpErrors = require("http-errors");
 const bodyParser = require("body-parser");
 const db = require("./Model/index");
@@ -9,41 +9,36 @@ const authRoutes = require("./Routers/authRoutes");
 const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
 
-
-
-// khoi tao express webserver
+// Khởi tạo express webserver
 const app = express();
 
-// bo sung cac middleware kiem soat hoat dong cua client toi webserver
+// Bổ sung các middleware kiểm soát hoạt động của client tới webserver
 app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: '*', // Hoặc thêm domain của ứng dụng trên Vercel vào đây
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization'
 }));
+
 // Đăng ký các route cho các chức năng
 app.use("/api/auth", authRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/admin", adminRoutes);
 
-
-
-// route toi web root
+// Route tới web root
 app.get('/', (req, res) => {
     res.status(200).json({
         message: "oke"
     });
 });
 
-
-// catch 404 and forward to error handler
+// Catch 404 and forward to error handler
 app.use(async (req, res, next) => {
     next(httpErrors.NotFound());
 });
 
-// error handler middleware
-
+// Error handler middleware
 app.use((err, req, res) => {
     res.status(err.status || 500);
     res.send({
@@ -54,8 +49,8 @@ app.use((err, req, res) => {
     });
 });
 
-// tiep nhan cac request
-app.listen(process.env.PORT, process.env.HOST_NAME, () => {
-    console.log(`Server is running at: http://${process.env.HOST_NAME}:${process.env.PORT}`);
-    db.connectDB(); // Corrected function call
+// Kết nối đến database và khởi động server
+db.connectDB(); // Kết nối database
+app.listen(process.env.PORT || 3000, () => {
+    console.log(`Server is running on port ${process.env.PORT || 3000}`);
 });
