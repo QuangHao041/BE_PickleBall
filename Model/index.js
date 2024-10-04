@@ -9,7 +9,7 @@ const Message = require('./Message');
 const Notification = require('./Notification');
 const AdminNotification = require("../Model/AdminNotification");
 const Report = require('../Model/Report')
-const Application = require('../model/Application');
+const Application = require('../Model/Application');
 
 
 mongoose.Promise = global.Promise;
