@@ -92,7 +92,7 @@ exports.editPost = [
 
 // Hiển thị tất cả các bài đăng được duyệt
 exports.listAllPosts = [
-  authenticateUser,
+  // authenticateUser,
   async (req, res) => {
     try {
       const posts = await Post.find({ status: 'approved' })
