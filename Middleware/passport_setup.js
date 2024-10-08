@@ -1,37 +1,8 @@
 const passport = require('passport');
-const FacebookStrategy = require('passport-facebook').Strategy;
+// const FacebookStrategy = require('passport-facebook').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../Model/User'); // Model User của bạn
-
-// // Cấu hình Facebook OAuth
-// passport.use(new FacebookStrategy({
-//   clientID: process.env.FACEBOOK_APP_ID,
-//   clientSecret: process.env.FACEBOOK_APP_SECRET,
-//   callbackURL: '/auth/facebook/callback',
-//   profileFields: ['id', 'emails', 'name', 'picture.type(large)']  // Lấy thêm ảnh đại diện
-// }, async (accessToken, refreshToken, profile, done) => {
-//   try {
-//     const { email, first_name, last_name } = profile._json;
-//     let user = await User.findOne({ email });
-
-//     if (!user) {
-//       user = new User({
-//         username: first_name + ' ' + last_name,
-//         email: email,
-//         password: '',  // Để trống vì dùng đăng nhập OAuth
-//         profile: {
-//           name: first_name + ' ' + last_name,
-//           avatar: profile.photos[0].value
-//         }
-//       });
-//       await user.save();
-//     }
-
-//     return done(null, user);
-//   } catch (err) {
-//     return done(err, false);
-//   }
-// }));
+require('dotenv').config();
 
 // Cấu hình Google OAuth
 passport.use(new GoogleStrategy({
@@ -70,3 +41,35 @@ passport.deserializeUser(async (id, done) => {
   const user = await User.findById(id);
   done(null, user);
 });
+
+
+// // Cấu hình Facebook OAuth
+// passport.use(new FacebookStrategy({
+//   clientID: process.env.FACEBOOK_APP_ID,
+//   clientSecret: process.env.FACEBOOK_APP_SECRET,
+//   callbackURL: '/auth/facebook/callback',
+//   profileFields: ['id', 'emails', 'name', 'picture.type(large)']  // Lấy thêm ảnh đại diện
+// }, async (accessToken, refreshToken, profile, done) => {
+//   try {
+//     const { email, first_name, last_name } = profile._json;
+//     let user = await User.findOne({ email });
+
+//     if (!user) {
+//       user = new User({
+//         username: first_name + ' ' + last_name,
+//         email: email,
+//         password: '',  // Để trống vì dùng đăng nhập OAuth
+//         profile: {
+//           name: first_name + ' ' + last_name,
+//           avatar: profile.photos[0].value
+//         }
+//       });
+//       await user.save();
+//     }
+
+//     return done(null, user);
+//   } catch (err) {
+//     return done(err, false);
+//   }
+// }));
+
