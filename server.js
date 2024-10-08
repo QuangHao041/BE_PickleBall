@@ -8,7 +8,7 @@ const db = require("./Model/index");
 const authRoutes = require("./Routers/authRoutes"); 
 const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
-
+const coachRoutes = require('./Routers/coachRoutes')
 // Khởi tạo express webserver
 const app = express();
 
@@ -25,7 +25,7 @@ app.use(cors({
 app.use("/api/auth", authRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/admin", adminRoutes);
-
+app.use("/api/coach", coachRoutes);
 // Route tới web root
 app.get('/', (req, res) => {
     res.status(200).json({
