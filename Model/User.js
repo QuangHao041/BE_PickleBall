@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -5,8 +6,11 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   email: { type: String, unique: true, sparse: true },
   phone: { type: String, unique: true, required: true },
-  password: { type: String, required: true },
+  password: { type: String, required: true }, // Để lưu mật khẩu khi đăng ký
   role: { type: String, enum: ['player', 'court', 'admin'], default: 'player' },
+  provider: { type: String, default: 'local' }, // Nguồn đăng nhập
+  facebookId: { type: String, unique: true }, // ID Facebook
+  googleId: { type: String, unique: true }, // ID Google
   profile: {
     name: { type: String, default: '' },
     avatar: { type: String, default: '' },
@@ -17,6 +21,7 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+// Mã hóa mật khẩu trước khi lưu
 userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);
@@ -24,6 +29,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// Kiểm tra mật khẩu
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };

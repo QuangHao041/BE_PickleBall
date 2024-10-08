@@ -8,7 +8,9 @@ const db = require("./Model/index");
 const authRoutes = require("./Routers/authRoutes"); 
 const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
-const coachRoutes = require('./Routers/coachRoutes')
+const coachRoutes = require('./Routers/coachRoutes');
+const passport = require('passport');
+require('./Middleware/passport_setup');
 // Khởi tạo express webserver
 const app = express();
 
@@ -20,6 +22,8 @@ app.use(cors({
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization'
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Đăng ký các route cho các chức năng
 app.use("/api/auth", authRoutes);
@@ -48,6 +52,7 @@ app.use((err, req, res) => {
         }
     });
 });
+
 
 // Kết nối đến database và khởi động server
 db.connectDB(); // Kết nối database

@@ -4,7 +4,7 @@ const { addCoach, editCoach, listCoaches, getCoachDetails } = require('../Contro
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
 
 // Thêm huấn luyện viên (chỉ admin)
-router.post('/add', authenticateUser, checkRole(['admin']), addCoach);
+router.post('/add', checkRole(['admin']), addCoach);
 
 // Chỉnh sửa huấn luyện viên (chỉ admin)
 router.put('/edit/:id', authenticateUser, checkRole(['admin']), editCoach);
