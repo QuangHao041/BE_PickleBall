@@ -10,11 +10,21 @@ const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
 const coachRoutes = require('./Routers/coachRoutes');
 const passport = require('passport');
+const session = require('express-session');
+
 require('./Middleware/passport_setup');
 // Khởi tạo express webserver
 const app = express();
 
 // Bổ sung các middleware kiểm soát hoạt động của client tới webserver
+
+app.use(session({
+    secret: process.env.JWT_SECRET || 'HaoNQHE161800SecretKey041', // Đảm bảo secret được đặt đúng
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Đặt thành true nếu chạy trên HTTPS
+}));
+
 app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use(cors({
