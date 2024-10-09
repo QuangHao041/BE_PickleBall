@@ -1,6 +1,7 @@
 const Post = require('../Model/Post');
 const { sendNotification } = require('./notificationController'); 
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
+const moment = require('moment');
 
 // Tạo bài mới và gửi thông báo đến admin
 exports.createPost = [
@@ -8,52 +9,43 @@ exports.createPost = [
     try {
       const {
         court_address,
-        group_type,
         images,
         total_players,
         court_type,
         players_needed,
         skill_level,
-        time,
+        play_date, 
+        play_time,
         cost,
         contact_info
       } = req.body;
-      // Kiểm tra định dạng của trường 'time'
-      const regexDate = /^\d{4}-\d{2}-\d{2}$/; // Định dạng YYYY-MM-DD
 
-      // Nếu time không khớp với định dạng, trả về lỗi
-      if (!regexDate.test(time)) {
-        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: YYYY-MM-DD.' });
+      // Kiểm tra định dạng của trường 'play_date' với định dạng DD-MM-YYYY
+      if (!moment(play_date, 'DD-MM-YYYY', true).isValid()) {
+        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
       }
 
-      const postTime = new Date(time); // Chuyển chuỗi time thành kiểu Date
-
-      // Kiểm tra xem thời gian có hợp lệ không (ngày 2024/20/20 không hợp lệ)
-      if (isNaN(postTime.getTime())) {
-        return res.status(400).json({ error: 'Thời gian không hợp lệ, vui lòng nhập ngày hợp lệ theo định dạng YYYY-MM-DD.' });
+      // Kiểm tra định dạng của trường 'play_time'
+      if (!/^\d{1,2}:\d{2} - \d{1,2}:\d{2}$/.test(play_time)) {
+        return res.status(400).json({ error: 'Định dạng thời gian không hợp lệ. Định dạng yêu cầu: HH:mm - HH:mm.' });
       }
+
       const newPost = new Post({
         user_id: req.user._id,
         court_address,
-        group_type,
         images,
         total_players,
         court_type,
         players_needed,
         skill_level,
-        time,
+        play_date: moment(play_date, 'DD-MM-YYYY').toISOString(), // Chuyển đổi thành định dạng ISO
+        play_time, // Lưu thời gian chơi
         cost,
         contact_info
       });
 
       await newPost.save();
 
-      // // // Tạo thông báo cho người dùng
-      // await Notification.create({
-      //   user_id: req.user._id,
-      //   message: `Bạn đã tạo một bài đăng mới: ${newPost.court_address}`,
-      //   related_post_id: newPost._id // Liên kết với bài đăng
-      // });
       await sendNotification(req.user._id, "Bài đăng của bạn đã được tạo thành công", newPost._id);
 
       res.status(201).json({ message: 'Tạo bài đăng thành công', post: newPost });
@@ -72,6 +64,15 @@ exports.editPost = [
       const { id } = req.params;
       const updateData = req.body;
       updateData.updated_at = Date.now();
+
+      // Kiểm tra định dạng cho play_date và play_time trong updateData
+      if (updateData.play_date && !moment(updateData.play_date, 'DD-MM-YYYY', true).isValid()) {
+        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
+      }
+
+      if (updateData.play_time && !/^\d{1,2}:\d{2} - \d{1,2}:\d{2}$/.test(updateData.play_time)) {
+        return res.status(400).json({ error: 'Định dạng thời gian không hợp lệ. Định dạng yêu cầu: HH:mm - HH:mm.' });
+      }
 
       const post = await Post.findOneAndUpdate(
         { _id: id, user_id: req.user._id },
@@ -96,9 +97,9 @@ exports.listFuturePosts = [
       const currentTime = new Date(); // Lấy thời gian hiện tại
 
       // Tìm tất cả các bài đăng với thời gian lớn hơn hoặc bằng thời gian hiện tại và có trạng thái approved
-      const posts = await Post.find({ time: { $gte: currentTime }, status: 'approved' })
+      const posts = await Post.find({ play_date: { $gte: currentTime }, status: 'approved' })
         .populate('user_id', 'username profile.name')
-        .sort({ time: 1 }); // Sắp xếp theo thời gian tăng dần
+        .sort({ play_date: 1 }); // Sắp xếp theo thời gian tăng dần
 
       if (posts.length === 0) {
         return res.status(404).json({ message: 'Không có bài đăng nào hiện tại hoặc trong tương lai.' });
@@ -161,12 +162,6 @@ exports.applyForPost = [
       post.players_needed -= 1;
       await post.save();
 
-      // // Tạo thông báo ứng tuyển
-      // await Notification.create({
-      //   user_id: post.user_id, // ID của người tạo bài đăng
-      //   content: `${req.user.username} đã ứng tuyển cho bài đăng: ${post.court_address}`,
-      //   related_post_id: post._id
-      // });
       // Gửi thông báo cho người tạo bài đăng
       await sendNotification(post.user_id, `Người dùng ${req.user.username} đã ứng tuyển cho bài đăng của bạn`, post._id);
 
@@ -181,11 +176,53 @@ exports.applyForPost = [
     }
   }
 ];
+
+// Controller: postController.js
+
+exports.cancelApplication = [
+  authenticateUser,
+  checkRole(['player']),
+  async (req, res) => {
+    const { post_id } = req.params; // Lấy ID bài đăng từ tham số
+    const user_id = req.user._id; // Lấy ID người dùng từ token
+
+    try {
+      const post = await Post.findById(post_id); // Tìm bài đăng
+
+      if (!post) {
+        return res.status(404).json({ error: 'Không tìm thấy bài đăng' });
+      }
+
+      // Kiểm tra xem người dùng đã ứng tuyển chưa
+      if (!post.applied_players || !post.applied_players.includes(user_id)) {
+        return res.status(400).json({ error: 'Bạn chưa ứng tuyển cho bài đăng này' });
+      }
+
+      // Xóa ID người dùng khỏi danh sách ứng tuyển
+      post.applied_players = post.applied_players.filter(id => id.toString() !== user_id.toString());
+      post.players_needed += 1; // Tăng số người cần thiết lên 1
+      await post.save(); // Lưu lại thay đổi
+
+      // Gửi thông báo cho người tạo bài đăng
+      await sendNotification(post.user_id, `Người dùng ${req.user.username} đã hủy ứng tuyển cho bài đăng của bạn`, post._id);
+
+      res.status(200).json({ message: 'Hủy ứng tuyển thành công', post });
+    } catch (error) {
+      console.error('Lỗi khi hủy ứng tuyển:', error);
+      res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
+    }
+  }
+];
+
+
 exports.listAppliedPosts = [
   authenticateUser,
   async (req, res) => {
     try {
       const userId = req.user._id; // Lấy ID người dùng từ token
+
+      // Lấy thời gian hiện tại để so sánh
+      const currentTime = new Date();
 
       // Tìm tất cả các bài đăng mà người dùng đã ứng tuyển
       const posts = await Post.find({ applied_players: userId })
@@ -196,7 +233,22 @@ exports.listAppliedPosts = [
         return res.status(404).json({ message: 'Bạn chưa ứng tuyển vào bài nào.' });
       }
 
-      res.json(posts);
+      // Duyệt qua từng bài đăng để kiểm tra trạng thái
+      const updatedPosts = posts.map(post => {
+        const postDate = new Date(post.play_date); // Lấy ngày chơi từ bài đăng
+
+        if (postDate < currentTime) {
+          // Nếu bài viết đã qua ngày
+          post.status = 'Hoàn thành'; // Cập nhật trạng thái là 'Hoàn thành'
+        } else {
+          // Nếu bài viết chưa qua ngày
+          post.status = 'Có thể hủy'; // Cho phép hủy bài viết
+        }
+
+        return post;
+      });
+
+      res.json(updatedPosts);
     } catch (error) {
       res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
     }

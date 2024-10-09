@@ -4,7 +4,7 @@ const {
   createPost,
   editPost,
   getPostDetails,
-  applyForPost, listFuturePosts,listAppliedPosts
+  applyForPost, listFuturePosts,listAppliedPosts,cancelApplication
 } = require('../Controller/postControllers');
 
 const router = express.Router();
@@ -27,5 +27,5 @@ router.get('/:id', getPostDetails);
 
 // Apply for a post - only accessible to users with 'player' role
 router.post('/:post_id/apply', authenticateUser, checkRole(['player']), applyForPost);
-
+router.delete('/cancel/:post_id', authenticateUser, checkRole(['player']),cancelApplication);
 module.exports = router;

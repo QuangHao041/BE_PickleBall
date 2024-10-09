@@ -8,7 +8,8 @@ const postSchema = new mongoose.Schema({
   court_type: { type: String, enum: ['Sân Có Mái Che', 'Sân không có mái che'], required: true },
   players_needed: { type: Number, required: true },
   skill_level: { type: String, required: true },
-  time: { type: Date, required: true },
+  play_date: { type: String, required: true }, // Ngày chơi (định dạng 'DD/MM/YYYY')
+  play_time: { type: String, required: true }, // Thời gian chơi (định dạng 'HH:mm - HH:mm')
   cost: { type: Number, required: true },
   contact_info: { type: String, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
@@ -27,7 +28,5 @@ postSchema.pre('findOneAndUpdate', function (next) {
   this.set({ updated_at: Date.now() }); // Cập nhật thời gian khi cập nhật
   next();
 });
-
-
 
 module.exports = mongoose.model('Post', postSchema);
