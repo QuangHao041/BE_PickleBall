@@ -20,17 +20,31 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// Mã hóa mật khẩu trước khi lưu
+// Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
 userSchema.pre('save', async function (next) {
-  if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 10);
+  if (this.isModified('password')) { // Chỉ mã hóa nếu mật khẩu đã bị thay đổi hoặc mới
+    try {
+      const salt = await bcrypt.genSalt(10); // Tạo salt với độ khó 10
+      this.password = await bcrypt.hash(this.password, salt); // Mã hóa mật khẩu
+      console.log('Hashed password saved:', this.password); // Ghi lại mật khẩu đã mã hóa
+    } catch (error) {
+      return next(error); // Nếu có lỗi trong quá trình mã hóa, dừng lại
+    }
   }
-  next();
+  next(); // Tiếp tục lưu người dùng vào cơ sở dữ liệu
 });
+
 
 // Kiểm tra mật khẩu
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  try {
+    console.log('Candidate Password:', candidatePassword); // Ghi lại mật khẩu nhập vào
+    console.log('Stored Hashed Password:', this.password); // Ghi lại mật khẩu đã mã hóa từ DB
+    return await bcrypt.compare(candidatePassword, this.password); // So sánh mật khẩu
+  } catch (error) {
+    throw new Error('Password comparison failed'); // Nếu so sánh thất bại, trả về lỗi
+  }
 };
+
 
 module.exports = mongoose.model('User', userSchema);

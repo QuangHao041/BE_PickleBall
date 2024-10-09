@@ -13,6 +13,15 @@ router.get('/profile', authenticateUser, getProfile);
 // Route cập nhật thông tin profile
 router.put('/profile', authenticateUser, updateProfile);
 
+// Google OAuth Routes
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+router.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    // Successful authentication, redirect home or send token.
+    res.redirect('/dashboard');
+  }
+);
 
 // // Facebook OAuth Routes
 // router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
@@ -24,14 +33,6 @@ router.put('/profile', authenticateUser, updateProfile);
 //   }
 // );
 
-// Google OAuth Routes
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    // Successful authentication, redirect home or send token.
-    res.redirect('/dashboard');
-  }
-);
+
 
 module.exports = router;

@@ -1,7 +1,8 @@
 const User = require('../Model/User');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// Đăng ký tài khoản mới
 exports.register = async (req, res) => {
   try {
     const { username, phone, email, password, role } = req.body;
@@ -10,35 +11,23 @@ exports.register = async (req, res) => {
     const validRoles = ['player', 'court', 'admin'];
     const userRole = validRoles.includes(role) ? role : 'player';
 
-    // Kiểm tra người dùng đã tồn tại chưa
-    const existingUser = await User.findOne({
-      $or: [{ username }, { phone }, { email }],
-    });
+    // Kiểm tra người dùng đã tồn tại chưa (bằng email hoặc số điện thoại)
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
-      console.log('Existing User:', existingUser); 
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    // Mã hóa mật khẩu
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Tạo người dùng mới và lưu vào database
+    // Tạo một người dùng mới
     const newUser = new User({
       username,
       phone,
       email,
-      password: hashedPassword,
-      role: userRole,
+      password,
+      role: userRole
     });
 
+    // Lưu người dùng vào cơ sở dữ liệu
     await newUser.save();
-
-    // Tạo JWT token cho người dùng
-    const token = jwt.sign(
-      { userId: newUser._id, role: newUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -47,9 +36,8 @@ exports.register = async (req, res) => {
         username: newUser.username,
         phone: newUser.phone,
         email: newUser.email,
-        role: newUser.role,
-      },
-      token,
+        role: newUser.role
+      }
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -58,23 +46,23 @@ exports.register = async (req, res) => {
 };
 
 
-
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log("Login attempt with username:", username); // Ghi lại thông tin
 
+    // Tìm người dùng theo username
     const user = await User.findOne({ username });
-    
     if (!user) {
-      return res.status(401).json({ error: `User with username "${username}" not found` });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    // So sánh mật khẩu
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid password' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    // Tạo token cho người dùng
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -93,7 +81,8 @@ exports.login = async (req, res) => {
       token
     });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'An error occurred during login' });
   }
 };
 
