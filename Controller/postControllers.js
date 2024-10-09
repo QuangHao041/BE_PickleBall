@@ -258,3 +258,42 @@ exports.listAppliedPosts = [
     }
   }
 ];
+
+exports.searchPosts = [
+  async (req, res) => {
+    try {
+      const { court_address, play_time, skill_level, court_type } = req.query;
+
+      // Tạo đối tượng điều kiện tìm kiếm
+      const searchCriteria = {};
+
+      // Thêm điều kiện vào đối tượng tìm kiếm nếu có giá trị
+      if (court_address) {
+        searchCriteria.court_address = { $regex: court_address, $options: 'i' }; // Tìm kiếm không phân biệt chữ hoa chữ thường
+      }
+      if (play_time) {
+        searchCriteria.play_time = { $regex: play_time, $options: 'i' };
+      }
+      if (skill_level) {
+        searchCriteria.skill_level = skill_level; // Tìm kiếm chính xác cho trình độ
+      }
+      if (court_type) {
+        searchCriteria.court_type = court_type; // Tìm kiếm chính xác cho loại sân
+      }
+
+      // Tìm các bài viết theo tiêu chí tìm kiếm
+      const posts = await Post.find(searchCriteria)
+        .populate('user_id', 'username profile.name')
+        .sort({ created_at: -1 }); // Sắp xếp theo thời gian tạo bài đăng, mới nhất trước
+
+      if (posts.length === 0) {
+        return res.status(404).json({ message: 'Không tìm thấy bài đăng nào.' });
+      }
+
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
+    }
+  }
+];
+

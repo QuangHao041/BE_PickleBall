@@ -4,7 +4,7 @@ const {
   createPost,
   editPost,
   getPostDetails,
-  applyForPost, listFuturePosts,listAppliedPosts,cancelApplication
+  applyForPost, listFuturePosts,listAppliedPosts,cancelApplication,searchPosts
 } = require('../Controller/postControllers');
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.get('/future', listFuturePosts);
 // Route để hiển thị các bài từ hôm nay đến tương lai và các bài đã ứng tuyển
 router.get('/futureApp', authenticateUser, listAppliedPosts);
 
-
+router.get('/search', searchPosts);
 // Get post details - accessible to all authenticated users
 router.get('/:id', getPostDetails);
 
