@@ -8,9 +8,8 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, unique: true, required: true },
   password: { type: String, required: true }, // Để lưu mật khẩu khi đăng ký
   role: { type: String, enum: ['player', 'court', 'admin'], default: 'player' },
-  provider: { type: String, default: 'local' }, // Nguồn đăng nhập
-  facebookId: { type: String, unique: true }, // ID Facebook
-  googleId: { type: String, unique: true }, // ID Google
+  provider: { type: String, default: 'local' },
+  googleId: { type: String, unique: true, sparse: true }, 
   profile: {
     name: { type: String, default: '' },
     avatar: { type: String, default: '' },

@@ -1,12 +1,18 @@
 const express = require('express');
 const passport = require('passport');
-const { register, login } = require('../Controller/authController');
-
+const { register, login, getProfile, updateProfile } = require('../Controller/authController');
+const { authenticateUser} = require('../Middleware/authMiddleware');
 const router = express.Router();
 
 // Đăng ký và đăng nhập bằng thông tin người dùng
 router.post('/register', register);
 router.post('/login', login);
+// Route lấy thông tin profile
+router.get('/profile', authenticateUser, getProfile);
+
+// Route cập nhật thông tin profile
+router.put('/profile', authenticateUser, updateProfile);
+
 
 // // Facebook OAuth Routes
 // router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email'] }));
