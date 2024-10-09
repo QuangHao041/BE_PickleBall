@@ -5,7 +5,7 @@ const postSchema = new mongoose.Schema({
   court_address: { type: String, required: true },
   images: [String],
   total_players: { type: Number, required: true },
-  court_type: { type: String, enum: ['covered', 'uncovered'], required: true },
+  court_type: { type: String, enum: ['Sân Có Mái Che', 'Sân không có mái che'], required: true },
   players_needed: { type: Number, required: true },
   skill_level: { type: String, required: true },
   time: { type: Date, required: true },

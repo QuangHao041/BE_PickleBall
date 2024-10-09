@@ -3,9 +3,8 @@ const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
 const {
   createPost,
   editPost,
-  listAllPosts,
   getPostDetails,
-  applyForPost
+  applyForPost, listFuturePosts,listAppliedPosts
 } = require('../Controller/postControllers');
 
 const router = express.Router();
@@ -16,8 +15,12 @@ router.post('/create', authenticateUser, checkRole(['court']), createPost);
 // Edit post - only accessible to users with 'court' role
 router.put('/:id', authenticateUser, checkRole(['court']), editPost);
 
-// List all posts - accessible to all authenticated users
-router.get('/',  listAllPosts);
+// Thêm route cho chức năng này
+router.get('/future', listFuturePosts);
+
+// Route để hiển thị các bài từ hôm nay đến tương lai và các bài đã ứng tuyển
+router.get('/futureApp', authenticateUser, listAppliedPosts);
+
 
 // Get post details - accessible to all authenticated users
 router.get('/:id', getPostDetails);

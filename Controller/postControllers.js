@@ -90,24 +90,29 @@ exports.editPost = [
   }
 ];
 
-// Hiển thị tất cả các bài đăng được duyệt
-exports.listAllPosts = [
-  // authenticateUser,
+exports.listFuturePosts = [
   async (req, res) => {
     try {
-      const posts = await Post.find({ status: 'approved' })
+      const currentTime = new Date(); // Lấy thời gian hiện tại
+
+      // Tìm tất cả các bài đăng với thời gian lớn hơn hoặc bằng thời gian hiện tại và có trạng thái approved
+      const posts = await Post.find({ time: { $gte: currentTime }, status: 'approved' })
         .populate('user_id', 'username profile.name')
-        .sort({ created_at: -1 });
+        .sort({ time: 1 }); // Sắp xếp theo thời gian tăng dần
+
+      if (posts.length === 0) {
+        return res.status(404).json({ message: 'Không có bài đăng nào hiện tại hoặc trong tương lai.' });
+      }
+
       res.json(posts);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
     }
   }
 ];
 
 // Lấy chi tiết bài đăng
 exports.getPostDetails = [
-  // authenticateUser,
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -125,46 +130,6 @@ exports.getPostDetails = [
   }
 ];
 
-// Ứng tuyển cho bài đăng
-// exports.applyForPost = [
-//   authenticateUser, // Middleware xác thực người dùng
-//   checkRole(['player']), // Middleware kiểm tra vai trò
-//   async (req, res) => {
-//     const { post_id } = req.params;
-//     const user_id = req.user._id;
-
-//     try {
-//       // Tìm bài đăng
-//       const post = await Post.findById(post_id);
-
-//       // Kiểm tra xem bài đăng có tồn tại không
-//       if (!post) {
-//         return res.status(404).json({ error: 'Không tìm thấy bài đăng' });
-//       }
-
-//       // Kiểm tra số người cần thiết
-//       if (post.players_needed <= 0) {
-//         return res.status(400).json({ error: 'Số người cần thiết đã đủ' });
-//       }
-
-//       // Kiểm tra xem người dùng đã ứng tuyển chưa
-//       if (post.applied_players.includes(user_id)) {
-//         return res.status(400).json({ error: 'Bạn đã ứng tuyển cho bài đăng này rồi' });
-//       }
-
-//       // Cập nhật thông tin bài đăng
-//       post.applied_players.push(user_id); // Thêm người dùng vào danh sách ứng tuyển
-//       post.players_needed -= 1; // Giảm số lượng người cần thiết
-//       post.updated_at = new Date(); // Cập nhật thời gian
-//       await post.save(); // Lưu thay đổi
-
-//       res.status(200).json({ message: 'Bạn đã ứng tuyển thành công', post });
-//     } catch (error) {
-//       console.error('Lỗi khi ứng tuyển:', error);
-//       res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
-//     }
-//   }
-// ];
 exports.applyForPost = [
   authenticateUser,
   checkRole(['player']),
@@ -216,4 +181,24 @@ exports.applyForPost = [
     }
   }
 ];
+exports.listAppliedPosts = [
+  authenticateUser,
+  async (req, res) => {
+    try {
+      const userId = req.user._id; // Lấy ID người dùng từ token
 
+      // Tìm tất cả các bài đăng mà người dùng đã ứng tuyển
+      const posts = await Post.find({ applied_players: userId })
+        .populate('user_id', 'username profile.name')
+        .sort({ created_at: -1 }); // Sắp xếp theo thời gian tạo bài đăng, mới nhất trước
+
+      if (posts.length === 0) {
+        return res.status(404).json({ message: 'Bạn chưa ứng tuyển vào bài nào.' });
+      }
+
+      res.json(posts);
+    } catch (error) {
+      res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
+    }
+  }
+];
