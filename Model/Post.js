@@ -8,7 +8,7 @@ const postSchema = new mongoose.Schema({
   court_type: { type: String, enum: ['Sân Có Mái Che', 'Sân không có mái che'], required: true },
   players_needed: { type: Number, required: true },
   skill_level: { type: String, required: true },
-  play_date: { type: String, required: true }, // Ngày chơi (định dạng 'DD/MM/YYYY')
+  play_date: { type: Date, required: true }, 
   play_time: { type: String, required: true }, // Thời gian chơi (định dạng 'HH:mm - HH:mm')
   cost: { type: Number, required: true },
   contact_info: { type: String, required: true },

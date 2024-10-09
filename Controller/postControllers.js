@@ -3,7 +3,6 @@ const { sendNotification } = require('./notificationController');
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
 const moment = require('moment');
 
-// Tạo bài mới và gửi thông báo đến admin
 exports.createPost = [
   async (req, res) => {
     try {
@@ -14,20 +13,25 @@ exports.createPost = [
         court_type,
         players_needed,
         skill_level,
-        play_date, 
-        play_time,
+        play_date, // Đảm bảo sử dụng play_date
+        play_time, // Đảm bảo sử dụng play_time
         cost,
         contact_info
       } = req.body;
 
-      // Kiểm tra định dạng của trường 'play_date' với định dạng DD-MM-YYYY
-      if (!moment(play_date, 'DD-MM-YYYY', true).isValid()) {
+      // Kiểm tra định dạng của trường 'play_date'
+      const regexDate = /^\d{2}-\d{2}-\d{4}$/; // Định dạng DD-MM-YYYY
+      if (!regexDate.test(play_date)) {
         return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
       }
 
-      // Kiểm tra định dạng của trường 'play_time'
-      if (!/^\d{1,2}:\d{2} - \d{1,2}:\d{2}$/.test(play_time)) {
-        return res.status(400).json({ error: 'Định dạng thời gian không hợp lệ. Định dạng yêu cầu: HH:mm - HH:mm.' });
+      // Chuyển đổi định dạng ngày từ DD-MM-YYYY sang YYYY-MM-DD
+      const [day, month, year] = play_date.split('-');
+      const postDate = new Date(`${year}-${month}-${day}`);
+
+      // Kiểm tra xem thời gian có hợp lệ không
+      if (isNaN(postDate.getTime())) {
+        return res.status(400).json({ error: 'Ngày không hợp lệ, vui lòng nhập ngày hợp lệ theo định dạng DD-MM-YYYY.' });
       }
 
       const newPost = new Post({
@@ -38,16 +42,14 @@ exports.createPost = [
         court_type,
         players_needed,
         skill_level,
-        play_date: moment(play_date, 'DD-MM-YYYY').toISOString(), // Chuyển đổi thành định dạng ISO
-        play_time, // Lưu thời gian chơi
+        play_date: postDate, // Lưu trữ ngày đã chuyển đổi
+        play_time,
         cost,
         contact_info
       });
 
       await newPost.save();
-
       await sendNotification(req.user._id, "Bài đăng của bạn đã được tạo thành công", newPost._id);
-
       res.status(201).json({ message: 'Tạo bài đăng thành công', post: newPost });
     } catch (error) {
       res.status(400).json({ error: error.message });
@@ -111,6 +113,8 @@ exports.listFuturePosts = [
     }
   }
 ];
+
+
 
 // Lấy chi tiết bài đăng
 exports.getPostDetails = [
