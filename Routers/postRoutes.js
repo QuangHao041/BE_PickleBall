@@ -10,10 +10,10 @@ const {
 const router = express.Router();
 
 // Create post - only accessible to users with 'court' role
-router.post('/create', authenticateUser, checkRole(['court']), createPost);
+router.post('/create', authenticateUser, checkRole(['court', 'admin']), createPost);
 
 // Edit post - only accessible to users with 'court' role
-router.put('/:id', authenticateUser, checkRole(['court']), editPost);
+router.put('/:id', authenticateUser, checkRole(['court', 'admin']), editPost);
 
 // Thêm route cho chức năng này
 router.get('/future', listFuturePosts);

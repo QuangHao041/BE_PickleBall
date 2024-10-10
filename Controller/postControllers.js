@@ -14,8 +14,8 @@ exports.createPost = [
         court_type,
         players_needed,
         skill_level,
-        play_date, // Đảm bảo sử dụng play_date
-        play_time, // Đảm bảo sử dụng play_time
+        play_date, 
+        play_time, 
         cost,
         contact_info
       } = req.body;
