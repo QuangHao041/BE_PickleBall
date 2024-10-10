@@ -21,10 +21,11 @@ exports.createPost = [
       } = req.body;
 
       // Kiểm tra định dạng của trường 'play_date'
-      const regexDate = /^\d{2}-\d{2}-\d{4}$/;  // Định dạng DD-MM-YYYY
+      const regexDate = /^\d{2}\/\d{2}\/\d{4}$/;  // Định dạng DD/MM/YYYY
       if (!regexDate.test(play_date)) {
-        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
+        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD/MM/YYYY.' });
       }
+
       const newPost = new Post({
         user_id: req.user._id,
         court_name,
@@ -60,8 +61,8 @@ exports.editPost = [
       updateData.updated_at = Date.now();
 
       // Kiểm tra định dạng cho play_date và play_time trong updateData
-      if (updateData.play_date && !moment(updateData.play_date, 'DD-MM-YYYY', true).isValid()) {
-        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
+      if (updateData.play_date && !moment(updateData.play_date, 'DD/MM/YYYY', true).isValid()) {
+        return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD/MM/YYYY.' });
       }
 
       if (updateData.play_time && !/^\d{1,2}:\d{2} - \d{1,2}:\d{2}$/.test(updateData.play_time)) {
@@ -92,7 +93,7 @@ exports.listFuturePosts = [
 
       // Tìm tất cả các bài đăng với play_date lớn hơn hoặc bằng thời gian hiện tại và có trạng thái approved
       const posts = await Post.find({
-        play_date: { $gte: moment(currentTime).format('DD-MM-YYYY') }, // Chuyển đổi currentTime sang định dạng DD-MM-YYYY
+        play_date: { $gte: moment(currentTime).format('DD/MM/YYYY') }, 
         status: 'approved'
       })
         .populate('user_id', 'username profile.name')
@@ -102,10 +103,10 @@ exports.listFuturePosts = [
         return res.status(404).json({ message: 'Không có bài đăng nào hiện tại hoặc trong tương lai.' });
       }
 
-      // Chuyển đổi play_date sang định dạng DD-MM-YYYY
+      // Chuyển đổi play_date sang định dạng DD/MM/YYYY
       const formattedPosts = posts.map(post => ({
         ...post.toObject(), // Chuyển đổi post thành object thông thường
-        play_date: moment(post.play_date, 'DD-MM-YYYY').format('DD-MM-YYYY') // Đảm bảo định dạng
+        play_date: moment(post.play_date, 'DD/MM/YYYY').format('DD/MM/YYYY') // Đảm bảo định dạng
       }));
 
       res.json(formattedPosts);
