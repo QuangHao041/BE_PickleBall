@@ -1,7 +1,8 @@
 const Post = require('../Model/Post');
 const { sendNotification } = require('./notificationController');
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
-const moment = require('moment')
+const moment = require('moment');
+
 exports.createPost = [
   async (req, res) => {
     try {

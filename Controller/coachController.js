@@ -11,6 +11,7 @@ exports.addCoach = async (req, res) => {
       price_per_session,
       contact_info,
       profile_image_url,
+      address
     });
 
     await newCoach.save();
