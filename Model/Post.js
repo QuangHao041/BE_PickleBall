@@ -12,11 +12,11 @@ const postSchema = new mongoose.Schema({
   play_date: { type: String, required: true }, 
   play_time: { type: String, required: true }, 
   cost: { type: Number, required: true },
-  contact_info: { type: String, required: true },
+  contact_info: { type: String},
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
-  applied_players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] 
+  applied_players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]   
 });
 
 // Middleware cập nhật updated_at
