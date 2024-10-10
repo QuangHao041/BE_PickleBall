@@ -8,7 +8,7 @@ exports.createPost = [
     try {
       const {
         court_name,
-        link,
+        location,
         images,
         total_players,
         court_type,
@@ -28,7 +28,7 @@ exports.createPost = [
       const newPost = new Post({
         user_id: req.user._id,
         court_name,
-        link,
+        location,
         images,
         total_players,
         court_type,
