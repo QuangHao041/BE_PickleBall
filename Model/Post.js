@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema({
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  court_address: { type: String, required: true },
+  court_name: { type: String, required: true },
+  link:{type:String,required: true },
   images: [String],
   total_players: { type: Number, required: true },
   court_type: { type: String, enum: ['Sân Có Mái Che', 'Sân không có mái che'], required: true },

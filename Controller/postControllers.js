@@ -6,7 +6,8 @@ exports.createPost = [
   async (req, res) => {
     try {
       const {
-        court_address,
+        court_name,
+        link,
         images,
         total_players,
         court_type,
@@ -25,7 +26,8 @@ exports.createPost = [
       }
       const newPost = new Post({
         user_id: req.user._id,
-        court_address,
+        court_name,
+        link,
         images,
         total_players,
         court_type,
