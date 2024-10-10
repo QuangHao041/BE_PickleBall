@@ -1,7 +1,7 @@
 const Post = require('../Model/Post');
-const { sendNotification } = require('./notificationController'); 
+const { sendNotification } = require('./notificationController');
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
-
+const moment = require('moment')
 exports.createPost = [
   async (req, res) => {
     try {
@@ -87,8 +87,11 @@ exports.listFuturePosts = [
     try {
       const currentTime = new Date(); // Lấy thời gian hiện tại
 
-      // Tìm tất cả các bài đăng với thời gian lớn hơn hoặc bằng thời gian hiện tại và có trạng thái approved
-      const posts = await Post.find({ play_date: { $gte: currentTime }, status: 'approved' })
+      // Tìm tất cả các bài đăng với play_date lớn hơn hoặc bằng thời gian hiện tại và có trạng thái approved
+      const posts = await Post.find({
+        play_date: { $gte: moment(currentTime).format('DD-MM-YYYY') }, // Chuyển đổi currentTime sang định dạng DD-MM-YYYY
+        status: 'approved'
+      })
         .populate('user_id', 'username profile.name')
         .sort({ play_date: 1 }); // Sắp xếp theo thời gian tăng dần
 
@@ -96,13 +99,18 @@ exports.listFuturePosts = [
         return res.status(404).json({ message: 'Không có bài đăng nào hiện tại hoặc trong tương lai.' });
       }
 
-      res.json(posts);
+      // Chuyển đổi play_date sang định dạng DD-MM-YYYY
+      const formattedPosts = posts.map(post => ({
+        ...post.toObject(), // Chuyển đổi post thành object thông thường
+        play_date: moment(post.play_date, 'DD-MM-YYYY').format('DD-MM-YYYY') // Đảm bảo định dạng
+      }));
+
+      res.json(formattedPosts);
     } catch (error) {
       res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
     }
   }
 ];
-
 
 
 // Lấy chi tiết bài đăng

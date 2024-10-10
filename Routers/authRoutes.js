@@ -1,6 +1,6 @@
 const express = require('express');
 const passport = require('passport');
-const { register, login, getProfile, updateProfile } = require('../Controller/authController');
+const { register, login, getProfile, updateProfile, changePassword } = require('../Controller/authController');
 const { authenticateUser} = require('../Middleware/authMiddleware');
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.post('/register', register);
 router.post('/login', login);
 // Route lấy thông tin profile
 router.get('/profile', authenticateUser, getProfile);
-
+router.post('/change-password', authenticateUser, changePassword);
 // Route cập nhật thông tin profile
 router.put('/profile/update', authenticateUser, updateProfile);
 

@@ -142,3 +142,33 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while updating profile' });
   }
 };
+
+exports.changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user._id; // Giả sử bạn đã xác thực người dùng và có ID của họ
+
+    // Tìm người dùng trong cơ sở dữ liệu
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
+    }
+
+    // Kiểm tra mật khẩu cũ
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Mật khẩu cũ không đúng' });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+
+    // Lưu lại người dùng
+    await user.save();
+
+    res.status(200).json({ message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
