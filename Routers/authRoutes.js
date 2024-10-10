@@ -11,7 +11,7 @@ router.post('/login', login);
 router.get('/profile', authenticateUser, getProfile);
 
 // Route cập nhật thông tin profile
-router.put('/profile', authenticateUser, updateProfile);
+router.put('/profile/update', authenticateUser, updateProfile);
 
 // Google OAuth Routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

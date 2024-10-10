@@ -1,7 +1,6 @@
 const Post = require('../Model/Post');
 const { sendNotification } = require('./notificationController'); 
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
-const moment = require('moment');
 
 exports.createPost = [
   async (req, res) => {
@@ -20,20 +19,10 @@ exports.createPost = [
       } = req.body;
 
       // Kiểm tra định dạng của trường 'play_date'
-      const regexDate = /^\d{2}-\d{2}-\d{4}$/; // Định dạng DD-MM-YYYY
+      const regexDate = /^\d{2}-\d{2}-\d{4}$/;  // Định dạng DD-MM-YYYY
       if (!regexDate.test(play_date)) {
         return res.status(400).json({ error: 'Định dạng ngày không hợp lệ. Định dạng yêu cầu: DD-MM-YYYY.' });
       }
-
-      // Chuyển đổi định dạng ngày từ DD-MM-YYYY sang YYYY-MM-DD
-      const [day, month, year] = play_date.split('-');
-      const postDate = new Date(`${year}-${month}-${day}`);
-
-      // Kiểm tra xem thời gian có hợp lệ không
-      if (isNaN(postDate.getTime())) {
-        return res.status(400).json({ error: 'Ngày không hợp lệ, vui lòng nhập ngày hợp lệ theo định dạng DD-MM-YYYY.' });
-      }
-
       const newPost = new Post({
         user_id: req.user._id,
         court_address,
@@ -42,7 +31,7 @@ exports.createPost = [
         court_type,
         players_needed,
         skill_level,
-        play_date: postDate, // Lưu trữ ngày đã chuyển đổi
+        play_date, // Lưu trữ ngày đã chuyển đổi
         play_time,
         cost,
         contact_info
