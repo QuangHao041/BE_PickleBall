@@ -6,12 +6,12 @@ const {
   getPostDetails,
   applyForPost, listFuturePosts,listAppliedPosts,cancelApplication,searchPosts
 } = require('../Controller/postControllers');
+const upload = require('../Controller/upload');
 
 const router = express.Router();
 
 // Create post - only accessible to users with 'court' role
-router.post('/create', authenticateUser, checkRole(['court', 'admin']), createPost);
-
+router.post('/create', authenticateUser, checkRole(['court', 'admin']), upload.array('images', 10), createPost);
 // Edit post - only accessible to users with 'court' role
 router.put('/:id', authenticateUser, checkRole(['court', 'admin']), editPost);
 

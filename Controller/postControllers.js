@@ -9,7 +9,6 @@ exports.createPost = [
       const {
         court_name,
         location,
-        images,
         total_players,
         court_type,
         players_needed,
@@ -19,6 +18,9 @@ exports.createPost = [
         cost,
         contact_info
       } = req.body;
+
+      // Lấy danh sách ảnh từ req.files
+      const images = req.files.map(file => file.path); // Lưu đường dẫn của các ảnh
 
       // Kiểm tra định dạng của trường 'play_date'
       const regexDate = /^\d{2}\/\d{2}\/\d{4}$/;  // Định dạng DD/MM/YYYY
@@ -30,13 +32,13 @@ exports.createPost = [
         user_id: req.user._id,
         court_name,
         location,
-        images,
+        images, 
         total_players,
         court_type,
         players_needed,
         skill_level,
-        play_date, // Lưu trữ ngày đã chuyển đổi
-        play_time,
+        play_date, 
+        play_time, 
         cost,
         contact_info
       });
@@ -49,6 +51,7 @@ exports.createPost = [
     }
   }
 ];
+
 
 // Chỉnh sửa bài đăng
 exports.editPost = [
