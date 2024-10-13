@@ -94,12 +94,16 @@ exports.deletePost = async (req, res) => {
     const postId = req.params.id; // Lấy ID từ tham số URL
     const post = await Post.findById(postId); // Tìm bài đăng theo ID
 
+    // Kiểm tra xem bài đăng có tồn tại không
     if (!post) {
       return res.status(404).json({ error: 'Bài đăng không tồn tại' });
     }
 
-    // Kiểm tra xem người dùng có quyền xóa bài đăng hay không
-    if (req.user._id.toString() !== post.user_id.toString() && !req.user.roles.includes('admin')) {
+    // Kiểm tra quyền xóa bài đăng
+    const isAdmin = req.user.roles.includes('admin');
+    const isOwner = req.user._id.toString() === post.user_id.toString(); // Kiểm tra xem người dùng có phải là chủ bài đăng hay không
+
+    if (!isAdmin && !isOwner) {
       return res.status(403).json({ error: 'Bạn không có quyền xóa bài đăng này' });
     }
 
