@@ -1,6 +1,7 @@
 const Post = require('../Model/Post');
 const { sendNotification } = require('./notificationController');
 const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
+const cloudinary = require('../Config/cloudinaryConfig');
 const moment = require('moment');
 
 exports.createPost = [
@@ -19,9 +20,29 @@ exports.createPost = [
         contact_info
       } = req.body;
 
-      // Lấy danh sách ảnh từ req.files
-      const images = req.files.map(file => file.path); // Lưu đường dẫn của các ảnh
 
+       // Kiểm tra có file không
+       if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ error: 'Không có file nào được upload.' });
+      }
+
+      const uploadPromises = req.files.map(file => {
+        return new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            { resource_type: 'auto' }, // Tự động nhận diện loại tệp
+            (error, result) => {
+              if (error) {
+                return reject(new Error('Lỗi khi upload ảnh lên Cloudinary'));
+              }
+              resolve(result.secure_url); // Lưu trữ URL của ảnh đã upload
+            }
+          );
+          uploadStream.end(file.buffer); // Kết thúc luồng upload
+        });
+      });
+
+      // Upload tất cả hình ảnh và lấy URLs
+      const images = await Promise.all(uploadPromises);
       // Kiểm tra định dạng của trường 'play_date'
       const regexDate = /^\d{2}\/\d{2}\/\d{4}$/;  // Định dạng DD/MM/YYYY
       if (!regexDate.test(play_date)) {
