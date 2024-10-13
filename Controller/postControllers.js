@@ -89,6 +89,28 @@ exports.editPost = [
   }
 ];
 
+exports.deletePost = async (req, res) => {
+  try {
+    const postId = req.params.id; // Lấy ID từ tham số URL
+    const post = await Post.findById(postId); // Tìm bài đăng theo ID
+
+    if (!post) {
+      return res.status(404).json({ error: 'Bài đăng không tồn tại' });
+    }
+
+    // Kiểm tra xem người dùng có quyền xóa bài đăng hay không
+    if (req.user._id.toString() !== post.user_id.toString() && !req.user.roles.includes('admin')) {
+      return res.status(403).json({ error: 'Bạn không có quyền xóa bài đăng này' });
+    }
+
+    // Xóa bài đăng
+    await Post.findByIdAndDelete(postId);
+    res.status(200).json({ message: 'Xóa bài đăng thành công' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 exports.listFuturePosts = [
   async (req, res) => {
     try {

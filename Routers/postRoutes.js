@@ -4,7 +4,7 @@ const {
   createPost,
   editPost,
   getPostDetails,
-  applyForPost, listFuturePosts,listAppliedPosts,cancelApplication,searchPosts
+  applyForPost, listFuturePosts,listAppliedPosts,cancelApplication,searchPosts, deletePost
 } = require('../Controller/postControllers');
 const upload = require('../Controller/upload');
 
@@ -14,6 +14,9 @@ const router = express.Router();
 router.post('/create', authenticateUser, checkRole(['court', 'admin']), upload.array('images', 10), createPost);
 // Edit post - only accessible to users with 'court' role
 router.put('/:id', authenticateUser, checkRole(['court', 'admin']), editPost);
+
+// Delete post - only accessible to users with 'court' or 'admin' role
+router.delete('/delete/:id', authenticateUser, checkRole(['court', 'admin']), deletePost); // Thêm route xóa bài đăng
 
 // Thêm route cho chức năng này
 router.get('/future', listFuturePosts);
