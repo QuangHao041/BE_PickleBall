@@ -5,7 +5,7 @@ const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
 const upload = require('../Controller/upload');
 
 // Thêm huấn luyện viên (chỉ admin)
-router.post('/add', checkRole(['admin']), upload.array('images', 10),addCoach);
+router.post('/add',authenticateUser, checkRole(['admin']), upload.array('images', 10),addCoach);
 
 // Chỉnh sửa huấn luyện viên (chỉ admin)
 router.put('/edit/:id', authenticateUser, checkRole(['admin']), upload.array('images', 10),editCoach);
