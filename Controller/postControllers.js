@@ -147,8 +147,8 @@ exports.listFuturePosts = [
         status: 'approved'
       })
         .populate('user_id', 'username profile.name')
-        .sort({ play_date: 1 }) // Sắp xếp theo thời gian tăng dần
-        .lean(); // Chuyển đổi kết quả từ mongoose document sang object thông thường
+        .sort({ play_date: 1 }); // Sắp xếp theo thời gian tăng dần
+        // .lean(); // Chuyển đổi kết quả từ mongoose document sang object thông thường
 
       if (posts.length === 0) {
         return res.status(404).json({ message: 'Không có bài đăng nào hiện tại hoặc trong tương lai.' });
@@ -156,13 +156,15 @@ exports.listFuturePosts = [
 
       // Chuyển đổi play_date sang định dạng DD/MM/YYYY
       const formattedPosts = posts.map(post => ({
-        ...post.toObject(), // Chuyển đổi post thành object thông thường
+        ...post._doc, // Chuyển đổi post thành object thông thường
+        play_date: moment(post.play_date, 'DD/MM/YYYY').format('DD/MM/YYYY'),
         applied_count: post.applied_players ? post.applied_players.length : 0, // Đếm số người ứng tuyển
-        play_date: moment(post.play_date, 'DD/MM/YYYY').format('DD/MM/YYYY') // Đảm bảo định dạng
       }));
 
       res.json(formattedPosts);
     } catch (error) {
+      console.log(error);
+      
       res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại sau' });
     }
   }
