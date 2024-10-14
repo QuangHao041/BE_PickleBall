@@ -1,28 +1,44 @@
 const Coach = require('../Model/Coach');
-const cloudinary = require('../Config/cloudinaryConfig'); // Cấu hình Cloudinary
+const cloudinary = require('../Config/cloudinaryConfig');
 
 // Thêm huấn luyện viên mới
 exports.addCoach = async (req, res) => {
+  console.log(req.body); // Kiểm tra các trường thông tin không phải tệp
+  console.log(req.files); // Kiểm tra các tệp đã được gửi
   try {
     const { name, description, price_per_session, contact_info, address } = req.body;
-    
+
     // Kiểm tra có file không
-    if (!req.file) {
-      return res.status(400).json({ error: 'Không có ảnh được upload.' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Không có file nào được upload.' });
     }
 
-    // Upload ảnh lên Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path);
-    const profile_image = result.secure_url; // Lấy URL của ảnh sau khi upload
+    const uploadPromises = req.files.map(file => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { resource_type: 'auto' }, // Tự động nhận diện loại tệp
+          (error, result) => {
+            if (error) {
+              console.error('Lỗi khi upload ảnh lên Cloudinary:', error);
+              return reject(new Error('Lỗi khi upload ảnh lên Cloudinary: ' + error.message));
+            }
+            resolve(result.secure_url); // Lưu trữ URL của ảnh đã upload
+          }
+        );
+        uploadStream.end(file.buffer); // Kết thúc luồng upload
+      });
+    });
 
-    // Tạo huấn luyện viên mới
+    // Upload tất cả hình ảnh và lấy URLs
+    const images = await Promise.all(uploadPromises);
+
     const newCoach = new Coach({
       name,
       description,
       price_per_session,
       contact_info,
-      address,
-      profile_image // Lưu URL ảnh vào profile_image
+      images, // Gán mảng hình ảnh vào đây
+      address
     });
 
     await newCoach.save();
@@ -32,18 +48,13 @@ exports.addCoach = async (req, res) => {
   }
 };
 
+
 // Chỉnh sửa thông tin huấn luyện viên
 exports.editCoach = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    updateData.updated_at = Date.now();
-
-    // Nếu có ảnh mới được upload, upload lên Cloudinary
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path);
-      updateData.profile_image = result.secure_url; // Cập nhật URL ảnh mới
-    }
+    updateData.updated_at = Date.now(); // Cập nhật thời gian
 
     const coach = await Coach.findByIdAndUpdate(id, updateData, { new: true });
 

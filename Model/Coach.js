@@ -6,10 +6,9 @@ const coachSchema = new mongoose.Schema({
   price_per_session: { type: Number, required: true },  
   contact_info: { 
     phone: { type: String, required: true },  
-    facebook: { type: String }, 
-    zalo: { type: String },  
+    facebook: { type: String }
   },
-  profile_image: { type: String }, 
+  images: [{ type: String }], 
   address:{type:String,required: true }, 
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now }
