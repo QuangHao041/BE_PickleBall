@@ -19,7 +19,7 @@ router.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     // Successful authentication, redirect home or send token.
-    res.redirect('/dashboard');
+    res.redirect('/');
   }
 );
 

@@ -1,17 +1,28 @@
 const Coach = require('../Model/Coach');
+const cloudinary = require('../Config/cloudinaryConfig'); // Cấu hình Cloudinary
 
 // Thêm huấn luyện viên mới
 exports.addCoach = async (req, res) => {
   try {
-    const { name, rating, price_per_session, contact_info, profile_image_url } = req.body;
+    const { name, description, price_per_session, contact_info, address } = req.body;
     
+    // Kiểm tra có file không
+    if (!req.file) {
+      return res.status(400).json({ error: 'Không có ảnh được upload.' });
+    }
+
+    // Upload ảnh lên Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path);
+    const profile_image = result.secure_url; // Lấy URL của ảnh sau khi upload
+
+    // Tạo huấn luyện viên mới
     const newCoach = new Coach({
       name,
-      rating,
+      description,
       price_per_session,
       contact_info,
-      profile_image_url,
-      address
+      address,
+      profile_image // Lưu URL ảnh vào profile_image
     });
 
     await newCoach.save();
@@ -28,6 +39,12 @@ exports.editCoach = async (req, res) => {
     const updateData = req.body;
     updateData.updated_at = Date.now();
 
+    // Nếu có ảnh mới được upload, upload lên Cloudinary
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path);
+      updateData.profile_image = result.secure_url; // Cập nhật URL ảnh mới
+    }
+
     const coach = await Coach.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!coach) {
@@ -39,6 +56,7 @@ exports.editCoach = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Lấy danh sách huấn luyện viên
 exports.listCoaches = async (req, res) => {
