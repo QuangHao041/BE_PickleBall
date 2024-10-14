@@ -9,10 +9,10 @@ const authRoutes = require("./Routers/authRoutes");
 const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
 const coachRoutes = require('./Routers/coachRoutes');
-const passport = require('passport');
+// const passport = require('passport');
 const session = require('express-session');
 
-require('./Middleware/passport_setup');
+// require('./Middleware/passport_setup');
 // Khởi tạo express webserver
 const app = express();
 
@@ -32,8 +32,8 @@ app.use(cors({
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization'
 }));
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Đăng ký các route cho các chức năng
 app.use("/api/auth", authRoutes);
