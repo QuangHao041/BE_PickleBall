@@ -30,4 +30,11 @@ postSchema.pre('findOneAndUpdate', function (next) {
   next();
 });
 
+postSchema.virtual('applied_players_count').get(function() {
+  return this.applied_players.length;
+});
+
+postSchema.set('toJSON', { virtuals: true }); // Bảo đảm virtuals xuất hiện trong JSON
+
+
 module.exports = mongoose.model('Post', postSchema);
