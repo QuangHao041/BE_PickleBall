@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateUser, checkRole } = require('../Middleware/authMiddleware');
+const { authenticateUser, checkRole, authenticateAdmin } = require('../Middleware/authMiddleware');
 const {
   createPost,
   editPost,
@@ -16,7 +16,7 @@ router.post('/create', authenticateUser, checkRole(['court', 'admin']), upload.a
 router.put('/:id', authenticateUser, checkRole(['court', 'admin']), editPost);
 
 // Delete post - only accessible to users with 'court' or 'admin' role
-router.delete('/delete/:id', authenticateUser, checkRole(['court', 'admin']), deletePost); // Thêm route xóa bài đăng
+router.delete('/delete/:id', authenticateUser,authenticateAdmin, checkRole(['court', 'admin']), deletePost); // Thêm route xóa bài đăng
 
 // Thêm route cho chức năng này
 router.get('/future', listFuturePosts);

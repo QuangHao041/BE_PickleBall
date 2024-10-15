@@ -121,7 +121,7 @@ exports.deletePost = async (req, res) => {
     }
 
     // Kiểm tra quyền xóa bài đăng
-    const isAdmin = req.user.roles.includes('admin');
+    const isAdmin = req.user && Array.isArray(req.user.roles) && req.user.roles.includes('admin');
     const isOwner = req.user._id.toString() === post.user_id.toString(); // Kiểm tra xem người dùng có phải là chủ bài đăng hay không
 
     if (!isAdmin && !isOwner) {
