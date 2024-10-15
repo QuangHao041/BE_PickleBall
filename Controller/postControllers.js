@@ -121,8 +121,13 @@ exports.deletePost = async (req, res) => {
     }
 
     // Kiểm tra quyền xóa bài đăng
-    const isAdmin = req.user.roles.includes('admin');
-    const isOwner = req.user._id.toString() === post.user_id.toString(); // Kiểm tra xem người dùng có phải là chủ bài đăng hay không
+    const isAdmin = req.user.role === 'admin'; // Kiểm tra nếu người dùng là admin
+    const isOwner = req.user.role === 'court' && post.user_id.toString() === req.user._id.toString(); // Kiểm tra xem người dùng có phải là chủ bài đăng hay không
+
+    console.log('User ID:', req.user._id.toString());
+    console.log('Post User ID:', post.user_id.toString());
+    console.log('Is Admin:', isAdmin);
+    console.log('Is Court Owner:', isOwner);
 
     if (!isAdmin && !isOwner) {
       return res.status(403).json({ error: 'Bạn không có quyền xóa bài đăng này' });
