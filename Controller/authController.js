@@ -205,7 +205,7 @@ exports.forgotPassword = async (req, res) => {
           },
       });
 
-      const resetLink = `localhost:8383/api/auth/reset-password?token=${token}`;
+      const resetLink = `https://bepickleball.vercel.app/api/auth/reset-password?token=${token}`;
       const mailOptions = {
           from: process.env.EMAIL_USER,
           to: user.email,
