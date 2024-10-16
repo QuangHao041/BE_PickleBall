@@ -188,13 +188,19 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    // Tạo mật khẩu mới
     const newPassword = Math.random().toString(36).slice(-8); 
-    const hashedPassword = await bcrypt.hash(newPassword, 10); 
-
-    // Cập nhật mật khẩu trong cơ sở dữ liệu
-    user.password = hashedPassword;
+    console.log('Mật khẩu mới:', newPassword); 
+    
+    user.password = newPassword;
     await user.save();
+  //   try {
+  //     await user.save();
+  //     console.log('Mật khẩu lưu vào cơ sở dữ liệu:', user.password);
+  // } catch (error) {
+  //     console.error('Lỗi lưu vào cơ sở dữ liệu:', error);
+  //     return res.status(500).json({ error: 'Lỗi lưu mật khẩu mới' });
+  // }
+   
 
     // Cấu hình email
     const transporter = nodemailer.createTransport({

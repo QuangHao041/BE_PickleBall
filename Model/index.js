@@ -4,7 +4,6 @@ const User = require('../Model/User');
 const Post = require('./Post');
 const Court = require('./Court');
 const Coach = require('./Coach');
-const Message = require('./Message');
 const Notification = require('./Notification');
 const AdminNotification = require("../Model/AdminNotification");
 
@@ -19,7 +18,7 @@ db.user = User;
 db.post = Post;
 db.court = Court;
 db.coach = Coach;
-db.message = Message;
+
 db.notification = Notification;
 db.adminNoti = AdminNotification;
 
