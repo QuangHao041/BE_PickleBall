@@ -38,11 +38,10 @@ userSchema.pre('save', async function (next) {
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
-    console.log('Candidate Password:', candidatePassword); // Mật khẩu nhập vào
-    console.log('Stored Hashed Password:', this.password); // Mật khẩu đã mã hóa
-    return await bcrypt.compare(candidatePassword, this.password); // So sánh mật khẩu
+   
+    return await bcrypt.compare(candidatePassword, this.password); 
   } catch (error) {
-    throw new Error('Password comparison failed'); // Nếu so sánh thất bại, trả về lỗi
+    throw new Error('Password comparison failed'); 
   }
 };
 

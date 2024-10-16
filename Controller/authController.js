@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 require('dotenv').config(); 
-const crypto = require('crypto');
 
 
 // Đăng ký tài khoản mới
@@ -180,75 +179,44 @@ exports.changePassword = async (req, res) => {
 
 
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
-
   try {
-      // Tìm người dùng theo email
-      const user = await User.findOne({ email });
-      if (!user) {
-          return res.status(404).json({ error: 'Email không tồn tại' });
-      }
+    const { email } = req.body;
+    const user = await User.findOne({ email });
 
-      // Tạo token ngẫu nhiên
-      const token = crypto.randomBytes(20).toString('hex');
-      user.resetPasswordToken = token;
-      user.resetPasswordExpires = Date.now() + 3600000; // Token hợp lệ trong 1 giờ
+    if (!user) {
+      return res.status(404).json({ error: 'Người dùng không tồn tại' });
+    }
 
-      await user.save();
+    // Tạo mật khẩu mới
+    const newPassword = Math.random().toString(36).slice(-8); 
+    const hashedPassword = await bcrypt.hash(newPassword, 10); 
 
-      // Gửi email chứa liên kết đặt lại mật khẩu
-      const transporter = nodemailer.createTransport({
-          service: 'gmail',
-          auth: {
-              user: process.env.EMAIL_USER, // Thay đổi với email của bạn
-              pass: process.env.EMAIL_PASS, // Thay đổi với mật khẩu ứng dụng
-          },
-      });
+    // Cập nhật mật khẩu trong cơ sở dữ liệu
+    user.password = hashedPassword;
+    await user.save();
 
-      const resetLink = `https://bepickleball.vercel.app/api/auth/reset-password?token=${token}`;
-      const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: user.email,
-          subject: 'Yêu cầu đặt lại mật khẩu',
-          text: `Bạn đã yêu cầu đặt lại mật khẩu. Vui lòng nhấp vào liên kết sau để đặt lại mật khẩu của bạn: ${resetLink}`,
-      };
+    // Cấu hình email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
 
-      await transporter.sendMail(mailOptions);
-      res.status(200).json({ message: 'OTP đã được gửi tới email của bạn' });
+    // Gửi email với mật khẩu mới
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: 'Mật khẩu mới của bạn',
+      text: `Mật khẩu mới của bạn là: ${newPassword}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({ message: 'Mật khẩu mới đã được gửi đến email của bạn' });
   } catch (error) {
-      console.error('Error in forgotPassword:', error);
-      res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình yêu cầu quên mật khẩu' });
+    console.error('Lỗi quên mật khẩu:', error);
+    res.status(500).json({ error: 'Đã xảy ra lỗi, vui lòng thử lại' });
   }
 };
-
-
-exports.resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
-
-  try {
-      // Tìm người dùng theo token
-      const user = await User.findOne({
-          resetPasswordToken: token,
-          resetPasswordExpires: { $gt: Date.now() }, // Kiểm tra xem token có còn hiệu lực không
-      });
-
-      if (!user) {
-          return res.status(400).json({ error: 'Token không hợp lệ hoặc đã hết hạn' });
-      }
-
-      // Mã hóa mật khẩu mới
-      const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(newPassword, salt);
-
-      // Xóa token và thời gian hết hạn
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpires = undefined;
-
-      await user.save();
-      res.status(200).json({ message: 'Mật khẩu đã được đặt lại thành công' });
-  } catch (error) {
-      console.error('Error in resetPassword:', error);
-      res.status(500).json({ error: 'Đã xảy ra lỗi trong quá trình đặt lại mật khẩu' });
-  }
-};
-

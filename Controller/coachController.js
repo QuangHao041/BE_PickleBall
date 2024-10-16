@@ -94,3 +94,20 @@ exports.getCoachDetails = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+// Xóa huấn luyện viên
+exports.deleteCoach = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Tìm và xóa huấn luyện viên theo id
+    const coach = await Coach.findByIdAndDelete(id);
+
+    if (!coach) {
+      return res.status(404).json({ error: 'Không tìm thấy huấn luyện viên' });
+    }
+
+    res.json({ message: 'Xóa huấn luyện viên thành công' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
