@@ -93,7 +93,8 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.userId; // Lấy userId từ JWT middleware
+    const userId = req.user.id; // Lấy userId từ JWT middleware
+    const username = req.user.username; 
 
     const user = await User.findById(userId).select('-password -provider'); // Không lấy mật khẩu và provider
 
@@ -115,6 +116,7 @@ exports.getProfile = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while fetching profile' });
   }
 };
+
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.userId; // Lấy userId từ JWT middleware
