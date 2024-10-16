@@ -119,7 +119,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.userId; // Lấy userId từ JWT middleware
+    const userId = req.user.id; // Lấy userId từ JWT middleware
     const { name, avatar, skill_level, bio, phone_number, facebook_link } = req.body;
 
     // Tìm người dùng và cập nhật thông tin
