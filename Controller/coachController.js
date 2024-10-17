@@ -12,7 +12,6 @@ exports.addCoach = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Không có file nào được upload.' });
     }
-
     const uploadPromises = req.files.map(file => {
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -28,8 +27,7 @@ exports.addCoach = async (req, res) => {
         uploadStream.end(file.buffer); // Kết thúc luồng upload
       });
     });
-
-    // Upload tất cả hình ảnh và lấy URLs
+   // Upload tất cả hình ảnh và lấy URLs
     const images = await Promise.all(uploadPromises);
 
     const newCoach = new Coach({
