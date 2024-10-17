@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const { register, login, getProfile, updateProfile, changePassword, forgotPassword} = require('../Controller/authController');
 const { authenticateUser} = require('../Middleware/authMiddleware');
+const upload = require('../Controller/upload');
 const router = express.Router();
 
 // Đăng ký và đăng nhập bằng thông tin người dùng
@@ -14,7 +15,7 @@ router.post('/forgot-password', forgotPassword);
 router.get('/profile', authenticateUser, getProfile);
 router.post('/change-password', authenticateUser, changePassword);
 // Route cập nhật thông tin profile
-router.put('/profile/update', authenticateUser, updateProfile);
+router.put('/profile/update', authenticateUser, upload.array('avatar', 1), updateProfile);
 
 // Google OAuth Routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

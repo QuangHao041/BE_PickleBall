@@ -2,7 +2,8 @@ const User = require('../Model/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
-require('dotenv').config(); 
+require('dotenv').config();
+const cloudinary = require('../Config/cloudinaryConfig');
 
 
 // Đăng ký tài khoản mới
@@ -59,11 +60,11 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid username ' });
     }
 
-     // So sánh mật khẩu
-     const isMatch = await bcrypt.compare(password, user.password); // Dùng bcrypt để so sánh
-     if (!isMatch) {
-       return res.status(401).json({ error: 'Invalid password' });
-     }
+    // So sánh mật khẩu
+    const isMatch = await bcrypt.compare(password, user.password); // Dùng bcrypt để so sánh
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
 
     // Tạo token cho người dùng
     const token = jwt.sign(
@@ -94,7 +95,7 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy userId từ JWT middleware
-    const username = req.user.username; 
+    const username = req.user.username;
 
     const user = await User.findById(userId).select('-password -provider'); // Không lấy mật khẩu và provider
 
@@ -120,7 +121,30 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const userId = req.user.id; // Lấy userId từ JWT middleware
-    const { name, avatar, skill_level, bio, phone_number, facebook_link } = req.body;
+    const { name, skill_level, bio, phone_number, facebook_link } = req.body;
+
+    // Kiểm tra có file không
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'Không có file nào được upload.' });
+    }
+
+    const uploadPromises = req.files.map(file => {
+      return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          { resource_type: 'auto' }, // Tự động nhận diện loại tệp
+          (error, result) => {
+            if (error) {
+              return reject(new Error('Lỗi khi upload ảnh lên Cloudinary'));
+            }
+            resolve(result.secure_url); // Lưu trữ URL của ảnh đã upload
+          }
+        );
+        uploadStream.end(file.buffer); // Kết thúc luồng upload
+      });
+    });
+
+    // Upload tất cả hình ảnh và lấy URLs
+    const avatar = await Promise.all(uploadPromises);
 
     // Tìm người dùng và cập nhật thông tin
     const updatedUser = await User.findByIdAndUpdate(
@@ -190,19 +214,19 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    const newPassword = Math.random().toString(36).slice(-8); 
-    console.log('Mật khẩu mới:', newPassword); 
-    
+    const newPassword = Math.random().toString(36).slice(-8);
+    console.log('Mật khẩu mới:', newPassword);
+
     user.password = newPassword;
     await user.save();
-  //   try {
-  //     await user.save();
-  //     console.log('Mật khẩu lưu vào cơ sở dữ liệu:', user.password);
-  // } catch (error) {
-  //     console.error('Lỗi lưu vào cơ sở dữ liệu:', error);
-  //     return res.status(500).json({ error: 'Lỗi lưu mật khẩu mới' });
-  // }
-   
+    //   try {
+    //     await user.save();
+    //     console.log('Mật khẩu lưu vào cơ sở dữ liệu:', user.password);
+    // } catch (error) {
+    //     console.error('Lỗi lưu vào cơ sở dữ liệu:', error);
+    //     return res.status(500).json({ error: 'Lỗi lưu mật khẩu mới' });
+    // }
+
 
     // Cấu hình email
     const transporter = nodemailer.createTransport({

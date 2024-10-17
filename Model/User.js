@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, unique: true, sparse: true }, 
   profile: {
     name: { type: String, default: '' },
-    avatar: { type: String, default: '' },
+    avatar: [ {type: String, default: ''} ],
     skill_level: { type: String, default: '' },
     bio: { type: String, default: '' },
     phone_number: { type: String, default: '' },
