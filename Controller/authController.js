@@ -190,12 +190,7 @@ exports.changePassword = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ error: 'Mật khẩu cũ không đúng' });
     }
-
-    // Mã hóa mật khẩu mới
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-
-    // Lưu lại người dùng
+    user.password = newPassword;
     await user.save();
 
     res.status(200).json({ message: 'Đổi mật khẩu thành công' });

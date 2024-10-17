@@ -58,7 +58,7 @@ exports.createPost = [
         court_type,
         players_needed,
         skill_level,
-        play_date, 
+        play_date,
         play_time, 
         cost,
         contact_info
