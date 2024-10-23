@@ -98,7 +98,7 @@ exports.deleteCoach = async (req, res) => {
   }
 };
 
-exports.getApplicantsForPost = async (req, res) => {
+exports.getUserApplyPost = async (req, res) => {
   try {
     const { postId } = req.params;
 

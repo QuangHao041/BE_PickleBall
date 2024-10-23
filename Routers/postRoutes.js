@@ -19,7 +19,6 @@ router.get('/search', searchPosts);
 router.post('/:post_id/apply', authenticateUser, checkRole(['player']), applyForPost);
 router.delete('/cancel/:post_id', authenticateUser, checkRole(['player']),cancelApplication);
 router.get('/futureApp', authenticateUser, listAppliedPosts);
-router.get('/posts/court', authenticateUser,authenticateAdmin, getPosts);
 
 
 module.exports = router;
