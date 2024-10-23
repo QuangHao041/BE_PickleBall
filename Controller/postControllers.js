@@ -74,7 +74,7 @@ exports.createPost = [
 ];
 
 
-// Chỉnh sửa bài đăng
+
 exports.editPost = [
   authenticateUser,
   checkRole(['court']),
@@ -356,3 +356,23 @@ exports.searchPosts = [
   }
 ];
 
+exports.getPosts = async (req, res) => {
+  try {
+    if (req.user.role === 'court') {
+      const posts = await Post.find({ user_id: req.user._id }).select('-__v');
+      if (!posts.length) {
+        return res.status(404).json({ message: 'Không tìm thấy bài đăng nào của court.' });
+      }
+      return res.status(200).json(posts);
+    } else if (req.user.role === 'admin') {
+      const posts = await Post.find().select('-__v');
+      if (!posts.length) {
+        return res.status(404).json({ message: 'Không tìm thấy bài đăng nào.' });
+      }
+      return res.status(200).json(posts);
+    }
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({ error: 'Đã xảy ra lỗi khi lấy bài đăng.' });
+  }
+};

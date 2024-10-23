@@ -5,7 +5,7 @@ require('dotenv').config();
 const cloudinary = require('../Config/cloudinaryConfig');
 const { sendVerificationEmail } = require('../Mail/mailService');
 
-// Đăng ký tài khoản mới
+
 exports.register = async (req, res) => {
   try {
     const { username, phone, email, password, role } = req.body;

@@ -1,14 +1,12 @@
 const Coach = require('../Model/Coach');
 const cloudinary = require('../Config/cloudinaryConfig');
+const Post = require('../Model/Post');
 
-// Thêm huấn luyện viên mới
+
 exports.addCoach = async (req, res) => {
-  console.log(req.body); // Kiểm tra các trường thông tin không phải tệp
-  console.log(req.files); // Kiểm tra các tệp đã được gửi
   try {
     const { name, description, price_per_session, contact_info, address } = req.body;
 
-    // Kiểm tra có file không
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'Không có file nào được upload.' });
     }
@@ -21,13 +19,12 @@ exports.addCoach = async (req, res) => {
               console.error('Lỗi khi upload ảnh lên Cloudinary:', error);
               return reject(new Error('Lỗi khi upload ảnh lên Cloudinary: ' + error.message));
             }
-            resolve(result.secure_url); // Lưu trữ URL của ảnh đã upload
+            resolve(result.secure_url); 
           }
         );
-        uploadStream.end(file.buffer); // Kết thúc luồng upload
+        uploadStream.end(file.buffer); 
       });
     });
-   // Upload tất cả hình ảnh và lấy URLs
     const images = await Promise.all(uploadPromises);
 
     const newCoach = new Coach({
@@ -35,7 +32,7 @@ exports.addCoach = async (req, res) => {
       description,
       price_per_session,
       contact_info,
-      images, // Gán mảng hình ảnh vào đây
+      images, 
       address
     });
 
@@ -46,13 +43,11 @@ exports.addCoach = async (req, res) => {
   }
 };
 
-
-// Chỉnh sửa thông tin huấn luyện viên
 exports.editCoach = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    updateData.updated_at = Date.now(); // Cập nhật thời gian
+    updateData.updated_at = Date.now();
 
     const coach = await Coach.findByIdAndUpdate(id, updateData, { new: true });
 
@@ -66,8 +61,6 @@ exports.editCoach = async (req, res) => {
   }
 };
 
-
-// Lấy danh sách huấn luyện viên
 exports.listCoaches = async (req, res) => {
   try {
     const coaches = await Coach.find().sort({ created_at: -1 });
@@ -76,8 +69,6 @@ exports.listCoaches = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-// Lấy chi tiết huấn luyện viên
 exports.getCoachDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -92,12 +83,9 @@ exports.getCoachDetails = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-// Xóa huấn luyện viên
 exports.deleteCoach = async (req, res) => {
   try {
     const { id } = req.params;
-
-    // Tìm và xóa huấn luyện viên theo id
     const coach = await Coach.findByIdAndDelete(id);
 
     if (!coach) {
@@ -107,5 +95,32 @@ exports.deleteCoach = async (req, res) => {
     res.json({ message: 'Xóa huấn luyện viên thành công' });
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+exports.getApplicantsForPost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId).populate({
+      path: 'applied_players', 
+      select: 'username email phone profile.name profile.skill_level' 
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: 'Bài đăng không tồn tại.' });
+    }
+
+    if (req.user.role !== 'court' || post.user_id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Bạn không có quyền xem danh sách ứng viên của bài đăng này.' });
+    }
+    res.status(200).json({
+      postId: post._id,
+      courtName: post.court_name,
+      applicants: post.applied_players,
+    });
+  } catch (error) {
+    console.error('Error fetching applicants for post:', error);
+    res.status(500).json({ error: 'Đã xảy ra lỗi khi lấy danh sách ứng viên.' });
   }
 };

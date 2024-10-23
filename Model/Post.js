@@ -19,7 +19,6 @@ const postSchema = new mongoose.Schema({
   applied_players: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]   
 });
 
-// Middleware cập nhật updated_at
 postSchema.pre('save', function (next) {
   this.updated_at = Date.now(); // Cập nhật thời gian mỗi khi lưu
   next();

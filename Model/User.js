@@ -15,7 +15,6 @@ const userSchema = new mongoose.Schema({
     avatar: [ {type: String, default: ''} ],
     skill_level: { type: String, default: '' },
     bio: { type: String, default: '' },
-    phone_number: { type: String, default: '' },
     facebook_link: { type: String, default: '' }
   },
   isVerified: { type: Boolean, default: false },
