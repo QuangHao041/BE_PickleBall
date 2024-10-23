@@ -1,27 +1,21 @@
 const User = require('../Model/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 const cloudinary = require('../Config/cloudinaryConfig');
-
+const { sendVerificationEmail } = require('../Mail/mailService');
 
 // Đăng ký tài khoản mới
 exports.register = async (req, res) => {
   try {
     const { username, phone, email, password, role } = req.body;
-
-    // Kiểm tra vai trò hợp lệ hoặc gán vai trò mặc định là 'player'
     const validRoles = ['player', 'court', 'admin'];
     const userRole = validRoles.includes(role) ? role : 'player';
-
-    // Kiểm tra người dùng đã tồn tại chưa (bằng email hoặc số điện thoại)
     const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'Email hoặc số điện thoại đã tồn tại.' });
     }
 
-    // Tạo một người dùng mới
     const newUser = new User({
       username,
       phone,
@@ -30,11 +24,11 @@ exports.register = async (req, res) => {
       role: userRole
     });
 
-    // Lưu người dùng vào cơ sở dữ liệu
     await newUser.save();
-
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    await sendVerificationEmail(newUser.email, token);
     res.status(201).json({
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email to verify your account.',
       user: {
         id: newUser._id,
         username: newUser.username,
@@ -49,24 +43,41 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(400).json({ error: 'Người dùng không tồn tại.' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'Tài khoản đã được xác thực.' });
+    }
+
+    user.isVerified = true;
+    await user.save();
+
+    res.status(200).json({ message: 'Tài khoản của bạn đã được xác thực thành công.' });
+  } catch (error) {
+    console.error('Email verification error:', error);
+    res.status(400).json({ error: 'Token không hợp lệ hoặc đã hết hạn.' });
+  }
+};
 
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // Tìm người dùng theo username
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(401).json({ error: 'Invalid username ' });
     }
-
-    // So sánh mật khẩu
     const isMatch = await bcrypt.compare(password, user.password); // Dùng bcrypt để so sánh
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid password' });
     }
-
-    // Tạo token cho người dùng
     const token = jwt.sign(
       { userId: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -94,10 +105,10 @@ exports.login = async (req, res) => {
 
 exports.getProfile = async (req, res) => {
   try {
-    const userId = req.user.id; // Lấy userId từ JWT middleware
-    const username = req.user.username;
+    const userId = req.user.id; 
+    // const username = req.user.username;
 
-    const user = await User.findById(userId).select('-password -provider'); // Không lấy mật khẩu và provider
+    const user = await User.findById(userId).select('-password -provider'); 
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -177,15 +188,12 @@ exports.updateProfile = async (req, res) => {
 exports.changePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const userId = req.user._id; // Giả sử bạn đã xác thực người dùng và có ID của họ
-
-    // Tìm người dùng trong cơ sở dữ liệu
+    const userId = req.user._id; 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Người dùng không tồn tại' });
     }
 
-    // Kiểm tra mật khẩu cũ
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Mật khẩu cũ không đúng' });
@@ -214,25 +222,6 @@ exports.forgotPassword = async (req, res) => {
 
     user.password = newPassword;
     await user.save();
-    //   try {
-    //     await user.save();
-    //     console.log('Mật khẩu lưu vào cơ sở dữ liệu:', user.password);
-    // } catch (error) {
-    //     console.error('Lỗi lưu vào cơ sở dữ liệu:', error);
-    //     return res.status(500).json({ error: 'Lỗi lưu mật khẩu mới' });
-    // }
-
-
-    // Cấu hình email
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    // Gửi email với mật khẩu mới
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,

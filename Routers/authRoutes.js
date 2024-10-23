@@ -1,12 +1,13 @@
 const express = require('express');
 const passport = require('passport');
-const { register, login, getProfile, updateProfile, changePassword, forgotPassword} = require('../Controller/authController');
+const { register, login, getProfile, updateProfile, changePassword, forgotPassword,verifyEmail} = require('../Controller/authController');
 const { authenticateUser} = require('../Middleware/authMiddleware');
 const upload = require('../Controller/upload');
 const router = express.Router();
 
 // Đăng ký và đăng nhập bằng thông tin người dùng
 router.post('/register', register);
+router.get('/verify-email', verifyEmail);
 router.post('/login', login);
 
 router.post('/forgot-password', forgotPassword);

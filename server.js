@@ -9,10 +9,9 @@ const authRoutes = require("./Routers/authRoutes");
 const postRoutes = require('./Routers/postRoutes');
 const adminRoutes = require('./Routers/adminRoutes');
 const coachRoutes = require('./Routers/coachRoutes');
-// const passport = require('passport');
 const session = require('express-session');
 
-// require('./Middleware/passport_setup');
+
 // Khởi tạo express webserver
 const app = express();
 
@@ -28,12 +27,11 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(morgan("dev"));
 app.use(cors({
-    origin: '*', // Hoặc thêm domain của ứng dụng trên Vercel vào đây
+    origin: '*', 
     methods: 'GET,POST,PUT,DELETE',
     allowedHeaders: 'Content-Type,Authorization'
 }));
-// app.use(passport.initialize());
-// app.use(passport.session());
+
 
 // Đăng ký các route cho các chức năng
 app.use("/api/auth", authRoutes);

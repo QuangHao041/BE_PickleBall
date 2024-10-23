@@ -7,9 +7,6 @@ const Coach = require('./Coach');
 const Notification = require('./Notification');
 const AdminNotification = require("../Model/AdminNotification");
 
-
-
-
 mongoose.Promise = global.Promise;
 
 const db = {};
@@ -18,11 +15,8 @@ db.user = User;
 db.post = Post;
 db.court = Court;
 db.coach = Coach;
-
 db.notification = Notification;
 db.adminNoti = AdminNotification;
-
-
 
 db.connectDB = async () => {
    await mongoose.connect(process.env.MONGO_URI, {

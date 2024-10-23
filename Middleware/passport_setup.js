@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../Model/User'); // Model User của bạn
+const User = require('../Model/User'); 
 require('dotenv').config();
 
 // Cấu hình Google OAuth
@@ -17,7 +17,7 @@ passport.use(new GoogleStrategy({
       user = new User({
         username: name,
         email: email,
-        password: '',  // Để trống vì dùng đăng nhập OAuth
+        password: '',  
         profile: {
           name: name,
           avatar: picture

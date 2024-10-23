@@ -7,7 +7,7 @@ const courtSchema = new mongoose.Schema({
   description: { type: String },
   availability: [{
     day: { type: String },
-    time_slots: [String]  // e.g., ["08:00 - 10:00", "10:00 - 12:00"]
+    time_slots: [String]  
   }],
   price_per_hour: { type: Number, required: true },
   created_at: { type: Date, default: Date.now },

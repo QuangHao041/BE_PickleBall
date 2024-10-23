@@ -18,8 +18,7 @@ const userSchema = new mongoose.Schema({
     phone_number: { type: String, default: '' },
     facebook_link: { type: String, default: '' }
   },
-  resetPasswordToken: { type: String }, 
-  resetPasswordExpires: { type: Date },
+  isVerified: { type: Boolean, default: false },
 });
 
 userSchema.pre('save', async function (next) {
